@@ -4,13 +4,13 @@ var sheet = ss.getSheetByName('KeyLog');
 var timezone = "America/Mexico_City";
 
 function getFirstEmptyRow() {
-  var column = spr.getRange('E:E');
+  var column = sheet.getRange('E2:E');
   var values = column.getValues();
-  var ct = 0;
+  var row = 0;
   while ( values[row] && values[row][0] != "" ) {
     row++;
   }
-  return (row+1);
+  return (row+2);
 }
 
 function doGet(e){
@@ -28,7 +28,7 @@ function doGet(e){
   
   if (uid == -1) {
 
-    var EnextRow = getFirstEmptyRow;
+    var EnextRow = getFirstEmptyRow();
 
     sheet.getRange("E" + EnextRow).setValue(EntryTime);
       
