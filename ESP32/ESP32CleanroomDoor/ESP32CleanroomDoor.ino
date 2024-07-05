@@ -1,3 +1,10 @@
+/*
+ *This program was made for the acces door of the clean room in UPAEP using RFID ans an IoT app
+ *Authors:
+ *Emmanuel Isaac García Sanabria
+ *Iván ortiz de Lara
+ *Alessia Sanchez Amezcua
+*/
 /*--Libraries------------------------------------------------------------------------------------------------------------------------------------*/
 #include <SPI.h>
 #include <MFRC522.h>
@@ -8,7 +15,12 @@
 #define RST_PIN 22  // MFRC552 Reset PIN
 #define SS_PIN  21  // MFRC552 SS SDA PIN
 #define LOCK    13  // DoorLock PIN
-#define BUZZER  12  // Buzzer PIN
+#define BUZZER  4  // Buzzer PIN
+#define BUTTON  2  //Exit button PIN
+#define EXTRACTOR 13 // Extractor activation PIN 
+#define AIR_COOLER 12 // AC  activation PIN
+#define LIGHTS 14 // Lights activation PIN
+#define DEHUMIDIFERS 27 // Dehimidifers activation PIN
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
@@ -167,4 +179,3 @@ void loop() {
   ReadCard();
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
-
