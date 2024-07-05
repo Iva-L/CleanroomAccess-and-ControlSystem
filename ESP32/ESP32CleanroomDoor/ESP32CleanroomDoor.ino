@@ -42,7 +42,7 @@ String registeredIDs[3] = {
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Setup function for ESP32
+* @brief Setup function for ESP32
 * @param none
 * @retval none
 */
@@ -71,7 +71,7 @@ void setup() {
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Checks if the UID is acceptable
+* @brief Checks if the UID is acceptable
 * @param uid the card UID
 * @param size the size of UID
 * @retval the accepted UID
@@ -94,7 +94,7 @@ int checkAcceptedUID(byte *uid, byte size) {
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Requests URL via HTTP
+* @brief Requests URL via HTTP
 * @param Send_Data_URL the URL to request
 * @retval none
 */
@@ -126,7 +126,7 @@ void sendData(String Send_Data_URL){
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Reads the RFID Card
+* @brief Reads the RFID Card
 * @param none
 * @retval none
 */
@@ -166,7 +166,7 @@ void ReadCard(){
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Grants Access and opens the door
+* @brief Grants Access and opens the door
 * @param none
 * @retval none
 */
@@ -180,7 +180,7 @@ void GrantAccess(){
 }
 
 /**
-* Loop function for ESP32
+* @brief Loop function for ESP32
 * @param none
 * @retval none
 */
