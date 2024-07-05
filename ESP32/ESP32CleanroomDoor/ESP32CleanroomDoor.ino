@@ -27,16 +27,18 @@ const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1Um-EopYWO
 const String SHEET_NAME = "KeyLog";
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
-byte acceptedUIDs[3][4] = {
+byte acceptedUIDs[4][4] = {
   {0xD7, 0x6F, 0x4E, 0x20},
   {0x47, 0x2A, 0x50, 0x20},
-  {0x59, 0xDD, 0xB1, 0xB7}
+  {0x59, 0xDD, 0xB1, 0xB7},
+  {0xC7, 0xE8, 0x4F, 0x20}
 };
 
-String registeredIDs[3] = {
+String registeredIDs[4] = {
   "3448848",
   "3444657",
-  "3521954"
+  "3521954",
+  "3506609"
 };
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -77,7 +79,7 @@ void setup() {
 * @retval the accepted UID
 */
 int checkAcceptedUID(byte *uid, byte size) {
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 4; i++) {
     bool match = true;
     for (byte j = 0; j < size; j++) {
       if (uid[j] != acceptedUIDs[i][j]) {
