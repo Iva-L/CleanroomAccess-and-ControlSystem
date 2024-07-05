@@ -1,6 +1,6 @@
 /*
- *  @brief This program was made for the acces door of the clean room in UPAEP using RFID ans an IoT app
- *  @authors  Emmanuel Isaac García Sanabria, Iván Ortiz De Lara Alessia Sanchez Amezcua
+ *  @brief  This program was made for the acces door of the clean room in UPAEP using RFID ans an IoT app
+ *  @author Emmanuel Isaac García Sanabria, Iván Ortiz De Lara, Alessia Sanchez Amezcua
 */
 /*--Libraries------------------------------------------------------------------------------------------------------------------------------------*/
 #include <SPI.h>
@@ -9,14 +9,14 @@
 #include <HTTPClient.h>
 
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
-#define RST_PIN 22  // MFRC552 Reset PIN
-#define SS_PIN  21  // MFRC552 SS SDA PIN
-#define LOCK    13  // DoorLock PIN
-#define BUZZER  4  // Buzzer PIN
-#define BUTTON  2  //Exit button PIN
-#define EXTRACTOR 13 // Extractor activation PIN 
-#define AIR_COOLER 12 // AC  activation PIN
-#define LIGHTS 14 // Lights activation PIN
+#define RST_PIN 22      // MFRC552 Reset PIN
+#define SS_PIN  21      // MFRC552 SS SDA PIN
+#define LOCK    13      // DoorLock PIN
+#define BUZZER  4       // Buzzer PIN
+#define BUTTON  2       //Exit button PIN
+#define EXTRACTOR 13    // Extractor activation PIN 
+#define AIR_COOLER 12   // AC  activation PIN
+#define LIGHTS 14       // Lights activation PIN
 #define DEHUMIDIFERS 27 // Dehimidifers activation PIN
 
 /*--Constant Defines-----------------------------------------------------------------------------------------------------------------------------*/
