@@ -1,9 +1,6 @@
 /*
- *This program was made for the acces door of the clean room in UPAEP using RFID ans an IoT app
- *Authors:
- *Emmanuel Isaac García Sanabria
- *Iván ortiz de Lara
- *Alessia Sanchez Amezcua
+ *  @brief This program was made for the acces door of the clean room in UPAEP using RFID ans an IoT app
+ *  @authors  Emmanuel Isaac García Sanabria, Iván Ortiz De Lara Alessia Sanchez Amezcua
 */
 /*--Libraries------------------------------------------------------------------------------------------------------------------------------------*/
 #include <SPI.h>
@@ -51,10 +48,14 @@ String registeredIDs[3] = {
 */
 void setup() {
   pinMode(LOCK, OUTPUT);
+  pinMode(BUTTON, INPUT);
+
   Serial.begin(9600);
+
   SPI.begin();
   mfrc522.PCD_Init(); 
   Serial.println("Lectura del UID");
+
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to WiFi");
   WiFi.begin("upaep wifi", "");
@@ -147,13 +148,7 @@ void ReadCard(){
       int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
       if (pos != -1) {
         
-        //Grant Access
-        Serial.println("Access granted");
-        digitalWrite(LOCK, HIGH);
-        tone(BUZZER, 131,5000);
-        noTone(BUZZER);
-        digitalWrite(LOCK, LOW);
-        delay(1000);
+        GrantAccess();
         
         // Modify URL and send ID
         String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];
@@ -171,11 +166,37 @@ void ReadCard(){
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
+* Grants Access and opens the door
+* @param none
+* @retval none
+*/
+void GrantAccess(){
+  Serial.println("Access granted");
+  digitalWrite(LOCK, HIGH);
+  tone(BUZZER, 131,5000);
+  noTone(BUZZER);
+  digitalWrite(LOCK, LOW);
+  delay(1000);
+}
+
+/**
 * Loop function for ESP32
 * @param none
 * @retval none
 */
 void loop() {
+  //Reads Card if aviable
   ReadCard();
+
+  //Open door if button is pressed
+  if (digitalRead(BUTTON) == HIGH){
+    
+    //Grant Access
+    GrantAccess();
+
+    //Register Exit time
+    String Exit_URL = WEB_APP_URL + "?uid=" + "-1";
+    sendData(Exit_URL);
+  }
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
