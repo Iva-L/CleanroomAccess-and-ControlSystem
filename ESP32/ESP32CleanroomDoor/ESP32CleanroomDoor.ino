@@ -19,6 +19,9 @@
 #define LIGHTS 14 // Lights activation PIN
 #define DEHUMIDIFERS 27 // Dehimidifers activation PIN
 
+/*--Constant Defines-----------------------------------------------------------------------------------------------------------------------------*/
+#define MAX_USR 50
+
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
 
@@ -27,14 +30,14 @@ const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1Um-EopYWO
 const String SHEET_NAME = "KeyLog";
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
-byte acceptedUIDs[4][4] = {
+byte acceptedUIDs[MAX_USR][4] = {
   {0xD7, 0x6F, 0x4E, 0x20},
   {0x47, 0x2A, 0x50, 0x20},
   {0x59, 0xDD, 0xB1, 0xB7},
   {0xC7, 0xE8, 0x4F, 0x20}
 };
 
-String registeredIDs[4] = {
+String registeredIDs[MAX_USR] = {
   "3448848",
   "3444657",
   "3521954",
@@ -79,7 +82,7 @@ void setup() {
 * @retval the accepted UID
 */
 int checkAcceptedUID(byte *uid, byte size) {
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < MAX_USR; i++) {
     bool match = true;
     for (byte j = 0; j < size; j++) {
       if (uid[j] != acceptedUIDs[i][j]) {
