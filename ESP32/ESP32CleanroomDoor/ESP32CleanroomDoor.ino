@@ -27,9 +27,9 @@ extern String registeredIDs[MAX_USR];
 
 /*--Master UIDs----------------------------------------------------------------------------------------------------------------------------------*/
 byte MasterKeys[MAX_MSTR][4]{
-{0xD7, 0x6F, 0x4E, 0x20},
-{0xD7, 0x6F, 0x4E, 0x20},
-{0xD7, 0x6F, 0x4E, 0x20}
+{0x89, 0xEA, 0x95, 0x15},
+{0x89, 0xEA, 0x95, 0x15},
+{0x89, 0xEA, 0x95, 0x15}
 };
 
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
@@ -81,7 +81,7 @@ void ReadCard(void *parameter) {
     //Silence Buzzer
     noTone(BUZZER);
 
-    //Checks if there is a Card Oresent
+    //Checks if there is a Card Present
     if (mfrc522.PICC_IsNewCardPresent()) {
       if (mfrc522.PICC_ReadCardSerial()) {
         Serial.print("Card UID:");
@@ -91,14 +91,27 @@ void ReadCard(void *parameter) {
         }
         Serial.println();
 
-        for(int i=0; i>MAX_MSTR; i++){
-          if(memcmp(mfrc522.uid.uidByte,MasterKeys[i],mfrc522.uid.size) == 0){
-          MasterTrigger = true;
-          }
-        }
+        
 
-        if (MasterTrigger = true){    //Mandar UID a GoogleSheets
+        if (MasterTrigger == true){    //Mandar UID a GoogleSheets
+          Serial.print("Modo pro");
+          for(int i=0; i<MAX_MSTR; i++){
+            if(memcmp(mfrc522.uid.uidByte,MasterKeys[i], 4) == 0){
+              MasterTrigger = true;
+            }
+            else{
+              MasterTrigger = false;
+            }
+          }
         } else{                       //Checkar registro
+          for(int i=0; i<MAX_MSTR; i++){
+            if(memcmp(mfrc522.uid.uidByte,MasterKeys[i], 4) == 0){
+              MasterTrigger = true;
+            }
+            else{
+              MasterTrigger = false;
+            }
+          }
           // Check if the UID is accepted
           int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
           if (pos != -1) {
@@ -112,8 +125,6 @@ void ReadCard(void *parameter) {
           }
           mfrc522.PICC_HaltA(); // Ends reading
         }
-
-        
       }
     }
     vTaskDelay(pdMS_TO_TICKS(100));
