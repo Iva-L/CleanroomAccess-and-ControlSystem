@@ -9,40 +9,30 @@
 #include <HTTPClient.h>
 
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
-#define RST_PIN 22      // MFRC552 Reset PIN
-#define SS_PIN  21      // MFRC552 SS SDA PIN
-#define LOCK    13      // DoorLock PIN
-#define BUZZER  4       // Buzzer PIN
-#define BUTTON  2       //Exit button PIN
-#define EXTRACTOR 13    // Extractor activation PIN 
-#define AIR_COOLER 12   // AC  activation PIN
-#define LIGHTS 14       // Lights activation PIN
-#define DEHUMIDIFERS 27 // Dehimidifers activation PIN
+#define RST_PIN 22       // MFRC552 Reset PIN
+#define SS_PIN 21        // MFRC552 SS SDA PIN
+#define LOCK 13          // DoorLock PIN
+#define BUZZER 4         // Buzzer PIN
+#define BUTTON 2         //Exit button PIN
+#define EXTRACTOR 26     // Extractor activation PIN
+#define AIR_COOLER 12    // AC  activation PIN
+#define LIGHTS 14        // Lights activation PIN
+#define DEHUMIDIFERS 27  // Dehimidifers activation PIN
 
 /*--Constant Defines-----------------------------------------------------------------------------------------------------------------------------*/
 #define MAX_USR 50
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
-MFRC522 mfrc522(SS_PIN, RST_PIN); 
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 /*--GoogleSheets Info----------------------------------------------------------------------------------------------------------------------------*/
-const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1Um-EopYWO1ZcwcGpZxA0dLNmIz7t9tG-6IoduGvO7F7DdQUPsiR4mMyG84pe_00E/exec";
+const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiYW4zfcS4e_RgLtCBWFyxQM63XIDS3SUSOO3bRGPIITaGurdiBGJlOJOEfPbOzTnD/exec";
 const String SHEET_NAME = "KeyLog";
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
-byte acceptedUIDs[MAX_USR][4] = {
-  {0xD7, 0x6F, 0x4E, 0x20},
-  {0x47, 0x2A, 0x50, 0x20},
-  {0x59, 0xDD, 0xB1, 0xB7},
-  {0xC7, 0xE8, 0x4F, 0x20}
-};
 
-String registeredIDs[MAX_USR] = {
-  "3448848",
-  "3444657",
-  "3521954",
-  "3506609"
-};
+byte acceptedUIDs[MAX_USR][4];
+String registeredIDs[MAX_USR];
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -58,7 +48,7 @@ void setup() {
   Serial.begin(9600);
 
   SPI.begin();
-  mfrc522.PCD_Init(); 
+  mfrc522.PCD_Init();
   Serial.println("Lectura del UID");
 
   WiFi.mode(WIFI_STA);
@@ -99,18 +89,52 @@ int checkAcceptedUID(byte *uid, byte size) {
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
+* @brief Reads Data from Google Sheets
+* @retval none
+*/
+void readData(int n) {
+  n += 1;
+  HTTPClient http;
+  String Read_Data_URL = WEB_APP_URL + "?uid=" + n;
+
+  // HTTP GET Request.
+  http.begin(Read_Data_URL.c_str());
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+
+  // Gets the HTTP status code.
+  int httpCode = http.GET();
+
+  // Getting response from google sheet.
+  String payload;
+  if (httpCode > 0) {
+    payload = http.getString();
+    Serial.println("Payload : " + payload);
+  }
+
+  http.end();
+
+  acceptedUIDs[n][0] = strtoul(payload.substring(0,2).c_str(), NULL, 16);
+  acceptedUIDs[n][1] = strtoul(payload.substring(3,5).c_str(), NULL, 16);
+  acceptedUIDs[n][2] = strtoul(payload.substring(6,8).c_str(), NULL, 16);
+  acceptedUIDs[n][3] = strtoul(payload.substring(9,11).c_str(), NULL, 16);
+
+  registeredIDs[n] = payload.substring(12,payload.length());
+}
+/*------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/**
 * @brief Requests URL via HTTP
 * @param Send_Data_URL the URL to request
 * @retval none
 */
-void sendData(String Send_Data_URL){
+void sendData(String Send_Data_URL) {
   Serial.println("Send data to Google Spreadsheet...");
   Serial.print("URL : ");
   Serial.println(Send_Data_URL);
 
   // Writing data to Google Sheets
   HTTPClient http;
-    
+
   // HTTP GET Request
   http.begin(Send_Data_URL.c_str());
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
@@ -135,7 +159,7 @@ void sendData(String Send_Data_URL){
 * @param none
 * @retval none
 */
-void ReadCard(){
+void ReadCard() {
   //Silence Buzzer
   noTone(BUZZER);
 
@@ -152,9 +176,9 @@ void ReadCard(){
       // Check if the UID is accepted
       int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
       if (pos != -1) {
-        
+
         GrantAccess();
-        
+
         // Modify URL and send ID
         String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];
         sendData(Send_URL);
@@ -175,10 +199,10 @@ void ReadCard(){
 * @param none
 * @retval none
 */
-void GrantAccess(){
+void GrantAccess() {
   Serial.println("Access granted");
   digitalWrite(LOCK, HIGH);
-  tone(BUZZER, 131,5000);
+  tone(BUZZER, 131, 5000);
   noTone(BUZZER);
   digitalWrite(LOCK, LOW);
   delay(1000);
@@ -190,12 +214,16 @@ void GrantAccess(){
 * @retval none
 */
 void loop() {
+  // Checks accepted Cards index starts from 0 to 49
+
+  readData(2);
+
   //Reads Card if aviable
   ReadCard();
 
   //Open door if button is pressed
-  if (digitalRead(BUTTON) == HIGH){
-    
+  if (digitalRead(BUTTON) == HIGH) {
+
     //Grant Access
     GrantAccess();
 
