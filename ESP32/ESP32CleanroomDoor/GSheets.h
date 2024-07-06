@@ -42,7 +42,6 @@ bool readData(int n) {
     payload = http.getString();
     Serial.println("Payload : " + payload);
   }
-
   http.end();
 
   if(payload[0] == ','){

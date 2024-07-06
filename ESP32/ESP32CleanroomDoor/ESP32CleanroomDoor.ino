@@ -82,26 +82,25 @@ void ReadCard(void *parameter) {
     noTone(BUZZER);
 
     //Checks if there is a Card Present
-    String newUID;
     if (mfrc522.PICC_IsNewCardPresent()) {
       if (mfrc522.PICC_ReadCardSerial()) {
         Serial.print("Card UID:");
         for (byte i = 0; i < mfrc522.uid.size; i++) {
           Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
           Serial.print(mfrc522.uid.uidByte[i], HEX);
-          newUID += String((mfrc522.uid.uidByte[i], HEX));
         }
-        Serial.println();
-
-        
 
         if (MasterTrigger == true){    //Mandar UID a GoogleSheets
-          Serial.print("Modo pro");
-          Serial.println("Envio de uid: " + newUID);
-          String Send_URL = WEB_APP_URL + "?uid=-2&add=0" + newUID;     // Modify URL and send ID
-          sendData(Send_URL);     // Sends ID to database
           MasterTrigger = false;
 
+          String newUID = "";
+          for (int i = 0; i < 4; i++) {
+            newUID += String(mfrc522.uid.uidByte[i], HEX);
+          }
+
+          Serial.println("Envio de uid: " + newUID);
+          String Send_URL = WEB_APP_URL + "?uid=-2&add=" + newUID;     // Modify URL and send ID
+          sendData(Send_URL);     // Sends ID to database
         } else{                       //Checkar registro
           for(int i=0; i<MAX_MSTR; i++){
             if(memcmp(mfrc522.uid.uidByte,MasterKeys[i], 4) == 0){
@@ -123,10 +122,11 @@ void ReadCard(void *parameter) {
             Serial.println("Access denied");  //Deny access
           }
           mfrc522.PICC_HaltA(); // Ends reading
+          vTaskDelay(pdMS_TO_TICKS(1000));
         }
       }
     }
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
