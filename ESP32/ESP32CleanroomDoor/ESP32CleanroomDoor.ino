@@ -23,6 +23,10 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
 extern byte acceptedUIDs[MAX_USR][4];
+byte MasterKeys[2][4]{
+{0xD7, 0x6F, 0x4E, 0x20},
+{0xD7, 0x6F, 0x4E, 0x20}
+};
 extern String registeredIDs[MAX_USR];
 
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
@@ -69,6 +73,7 @@ void setup() {
 * @retval none
 */
 void ReadCard(void *parameter) {
+  bool MasterTrigger = false;
   while (1){
     //Silence Buzzer
     noTone(BUZZER);
@@ -83,18 +88,27 @@ void ReadCard(void *parameter) {
         }
         Serial.println();
 
-        // Check if the UID is accepted
-        int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
-        if (pos != -1) {
-          xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);                      //Grant Access
-          
-          String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];     // Modify URL and send ID
-          sendData(Send_URL);     // Sends ID to database
-
-        } else {
-          Serial.println("Access denied");  //Deny access
+        if(memcmp(mfrc522.uid.uidByte,MasterKeys[1],mfrc522.uid.size) == 0){
+          MasterTrigger = true;
         }
-        mfrc522.PICC_HaltA(); // Ends reading
+
+        if (MasterTrigger = true){    //Mandar UID a GoogleSheets
+        } else{                       //Checkar registro
+          // Check if the UID is accepted
+          int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
+          if (pos != -1) {
+            xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);                      //Grant Access
+            
+            String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];     // Modify URL and send ID
+            sendData(Send_URL);     // Sends ID to database
+
+          } else {
+            Serial.println("Access denied");  //Deny access
+          }
+          mfrc522.PICC_HaltA(); // Ends reading
+        }
+
+        
       }
     }
     vTaskDelay(pdMS_TO_TICKS(100));
