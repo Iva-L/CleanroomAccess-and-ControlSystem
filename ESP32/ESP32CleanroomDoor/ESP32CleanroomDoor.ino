@@ -8,6 +8,7 @@
 #include "WiFi.h"           // WiFi Library for ESP32
 #include "GSheets.h"        // Google Sheets custom header
 #include "LockDoor.h"       // Lockdoor mechanism custom header
+#include <UbidotsEsp32Mqtt.h>
 
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
 #define RST_PIN       22    // MFRC552 Reset PIN
@@ -18,8 +19,23 @@
 #define LIGHTS        14    // Light activation PIN
 #define DEHUMIDIFERS  27    // Dehumidifiers activation PIN
 
+/*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
+#define RST_PIN 22  // MFRC552 Reset PIN
+#define SS_PIN  21  // MFRC552 SS SDA PIN
+#define BUTTON  2  //Exit button PIN
+#define EXTRACTOR 26 // Extractor activation PIN 
+#define AIR_COOLER 12 // AC  activation PIN
+#define LIGHTS 14 // Lights activation PIN
+#define DEHUMIDIFERS 27 // Dehimidifers activation PIN
+
+/*--WiFi and ubidots--------------------------------------------------------------------------------------------------------------------------------------*/
+#define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"     //Ubidots TOKEN
+#define WIFISSID "Totalplay-BCA8"  // SSID  
+#define WIFIPASS "BCA83BAETKTSDEb3"  //Wifi Pass
+
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
-MFRC522 mfrc522(SS_PIN, RST_PIN);
+MFRC522 mfrc522(SS_PIN, RST_PIN); 
+Ubidots ubidots(TOKEN);
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
 extern byte acceptedUIDs[MAX_USR][4];
@@ -39,6 +55,46 @@ TaskHandle_t CARD_TASK;
 TaskHandle_t OPENDOOR_TASK;
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+/**
+* Callback function for ubidots
+* @param none
+* @retval none
+*/
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  if( String(topic) == "/v2.0/devices/cleanroom/lights/lv"){ 
+    Serial.println();
+    Serial.print("Command lights: ");
+    bool command1 = *payload - 48;
+    Serial.println(command1);
+    digitalWrite(LIGHTS, command1);
+  }
+  if( String(topic) == "/v2.0/devices/cleanroom/extractor/lv"){ 
+    Serial.println();
+    Serial.print("Command extractor: ");
+    bool command2 = *payload - 48;
+    Serial.println(command2);
+    digitalWrite(EXTRACTOR, command2);
+  }
+  if( String(topic) == "/v2.0/devices/cleanroom/dehumidifer/lv"){ 
+    Serial.println();
+    Serial.print("Command dehimidifer: ");
+    bool command3 = *payload - 48;
+    Serial.println(command3);
+    digitalWrite(DEHUMIDIFERS, command3);
+  }
+  if( String(topic) == "/v2.0/devices/cleanroom/air_cooler/lv"){ 
+    Serial.println();
+    Serial.print("Command air cooler: ");
+    bool command4 = *payload - 48;
+    Serial.println(command4);
+    digitalWrite(AIR_COOLER, command4);
+  }
+  
+}
+/*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
 * @brief  Setup function for ESP32
@@ -48,6 +104,10 @@ void setup() {
   pinMode(LOCK, OUTPUT);
   pinMode(BUTTON, INPUT);
 
+  pinMode(EXTRACTOR, OUTPUT);
+  pinMode(AIR_COOLER, OUTPUT);
+  pinMode(LIGHTS, OUTPUT);
+  pinMode(DEHUMIDIFERS, OUTPUT);
   Serial.begin(9600);
 
   SPI.begin();
@@ -55,7 +115,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to WiFi");
-  WiFi.begin("upaep wifi", "");
+  WiFi.begin(WIFISSID,WIFIPASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(250);
     Serial.print(".");
@@ -63,6 +123,20 @@ void setup() {
   Serial.println();
   Serial.println("WiFi connected.");
   Serial.println("------------");
+
+  Serial.println(" Initializing Ubidots Connection...");
+  ubidots.connectToWifi(WIFISSID, WIFIPASS);
+  ubidots.setDebug(true);                        // Pass a true or false bool value to activate debug messages
+  ubidots.setCallback(callback);
+  ubidots.setup();
+  ubidots.reconnect();
+
+  Serial.println(" Initializing Ubidots Connection...");
+  ubidots.subscribeLastValue("cleanroom","lights");
+  ubidots.subscribeLastValue("cleanroom","extractor");
+  ubidots.subscribeLastValue("cleanroom","dehumidifer");
+  ubidots.subscribeLastValue("cleanroom","air_cooler");
+  Serial.println("DONE");
 
   xTaskCreate(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK);
   xTaskCreate(CheckButton,"BUTTON_TASK",10000,NULL,2,&BUTTON_TASK);
@@ -175,5 +249,23 @@ void loop(){
   Serial.printf("%s running on core %d (priorite %d)\n", "loop()", xPortGetCoreID(), uxTaskPriorityGet(NULL));
   while(1){
   }
+}
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/**
+* Function to subscribe to ubidots and act phisically
+* @param none
+* @retval none
+*/
+void ubiloop(){
+  if (!ubidots.connected()) {
+    ubidots.reconnect();
+    ubidots.subscribeLastValue("cleanroom","lights");
+    ubidots.subscribeLastValue("cleanroom","extractor");
+    ubidots.subscribeLastValue("cleanroom","dehumidifer");
+    ubidots.subscribeLastValue("cleanroom","air_cooler");
+  }
+  ubidots.loop();
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
