@@ -89,3 +89,18 @@ void sendData(String Send_Data_URL) {
   http.end();
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+/**
+* @brief  Updates the register of acceptable UIDs
+* @retval none
+*/
+void UpdateReg(void *parameter){
+  while(1){
+    // Checks accepted Cards index starts from 0 to 49
+    for (int i=0; i<49; i++) {
+      if(readData(i) == false){
+        break;
+      }
+    }
+    vTaskDelay(pdMS_TO_TICKS(300000));
+  }
+}
