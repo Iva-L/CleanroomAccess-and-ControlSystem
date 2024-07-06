@@ -48,7 +48,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to WiFi");
-  WiFi.begin("INFINITUMB9A9", "S2GQCG3fSb");
+  WiFi.begin("upaep wifi", "");
   while (WiFi.status() != WL_CONNECTED) {
     delay(250);
     Serial.print(".");
@@ -127,7 +127,12 @@ void CheckButton(void *parameter) {
 void UpdateReg(void *parameter){
   while(1){
     // Checks accepted Cards index starts from 0 to 49
-    readData(0);
+    for (int i=0; i<49; i++) {
+      if(readData(i) == false){
+        break;
+      }
+    }
+    
     vTaskDelay(pdMS_TO_TICKS(300000));
   }
 }

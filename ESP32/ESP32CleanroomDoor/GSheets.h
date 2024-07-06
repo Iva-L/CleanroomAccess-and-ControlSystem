@@ -23,7 +23,7 @@ String registeredIDs[MAX_USR];
 * @brief Reads Data from Google Sheets
 * @retval none
 */
-void readData(int n) {
+bool readData(int n) {
   n += 1;
   HTTPClient http;
   String Read_Data_URL = WEB_APP_URL + "?uid=" + n;
@@ -44,12 +44,17 @@ void readData(int n) {
 
   http.end();
 
-  acceptedUIDs[n][0] = strtoul(payload.substring(0,2).c_str(), NULL, 16);
-  acceptedUIDs[n][1] = strtoul(payload.substring(3,5).c_str(), NULL, 16);
-  acceptedUIDs[n][2] = strtoul(payload.substring(6,8).c_str(), NULL, 16);
-  acceptedUIDs[n][3] = strtoul(payload.substring(9,11).c_str(), NULL, 16);
+  if(payload[0] == ','){
+    return false;
+  } else {
+    acceptedUIDs[n][0] = strtoul(payload.substring(0,2).c_str(), NULL, 16);
+    acceptedUIDs[n][1] = strtoul(payload.substring(3,5).c_str(), NULL, 16);
+    acceptedUIDs[n][2] = strtoul(payload.substring(6,8).c_str(), NULL, 16);
+    acceptedUIDs[n][3] = strtoul(payload.substring(9,11).c_str(), NULL, 16);
 
-  registeredIDs[n] = payload.substring(12,payload.length());
+    registeredIDs[n] = payload.substring(12,payload.length());
+    return true;
+  }
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
