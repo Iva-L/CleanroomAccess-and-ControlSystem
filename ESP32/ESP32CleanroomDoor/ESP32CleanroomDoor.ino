@@ -18,15 +18,15 @@
 #define LOCK    13  // DoorLock PIN
 #define BUZZER  4  // Buzzer PIN
 #define BUTTON  2  //Exit button PIN
-#define EXTRACTOR 13 // Extractor activation PIN 
+#define EXTRACTOR 26 // Extractor activation PIN 
 #define AIR_COOLER 12 // AC  activation PIN
 #define LIGHTS 14 // Lights activation PIN
 #define DEHUMIDIFERS 27 // Dehimidifers activation PIN
 
 /*--WiFi and ubidots--------------------------------------------------------------------------------------------------------------------------------------*/
 #define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"     //Ubidots TOKEN
-#define WIFISSID "upaep wifi"  // SSID
-#define WIFIPASS ""  //Wifi Pass
+#define WIFISSID "Totalplay-BCA8"  // SSID  
+#define WIFIPASS "BCA83BAETKTSDEb3"  //Wifi Pass
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
@@ -59,14 +59,35 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+  if( String(topic) == "/v2.0/devices/cleanroom/lights/lv"){ 
+    Serial.println();
+    Serial.print("Command lights: ");
+    bool command1 = *payload - 48;
+    Serial.println(command1);
+    digitalWrite(LIGHTS, command1);
   }
-  Serial.println();
-  Serial.print("Command: ");
-  bool command = *payload - 48;
-  Serial.println(command);
-  digitalWrite(LIGHTS, command);
+  if( String(topic) == "/v2.0/devices/cleanroom/extractor/lv"){ 
+    Serial.println();
+    Serial.print("Command extractor: ");
+    bool command2 = *payload - 48;
+    Serial.println(command2);
+    digitalWrite(EXTRACTOR, command2);
+  }
+  if( String(topic) == "/v2.0/devices/cleanroom/dehumidifer/lv"){ 
+    Serial.println();
+    Serial.print("Command dehimidifer: ");
+    bool command3 = *payload - 48;
+    Serial.println(command3);
+    digitalWrite(DEHUMIDIFERS, command3);
+  }
+  if( String(topic) == "/v2.0/devices/cleanroom/air_cooler/lv"){ 
+    Serial.println();
+    Serial.print("Command air cooler: ");
+    bool command4 = *payload - 48;
+    Serial.println(command4);
+    digitalWrite(AIR_COOLER, command4);
+  }
+  
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -87,7 +108,7 @@ void setup() {
   Serial.println("Lectura del UID");
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to WiFi");
-  WiFi.begin("upaep wifi", "");
+  WiFi.begin(WIFISSID,WIFIPASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(250);
     Serial.print(".");
@@ -106,6 +127,9 @@ void setup() {
 
   Serial.println(" Initializing Ubidots Connection...");
   ubidots.subscribeLastValue("cleanroom","lights");
+  ubidots.subscribeLastValue("cleanroom","extractor");
+  ubidots.subscribeLastValue("cleanroom","dehumidifer");
+  ubidots.subscribeLastValue("cleanroom","air_cooler");
   Serial.println("DONE");
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -221,6 +245,9 @@ void ubiloop(){
   if (!ubidots.connected()) {
     ubidots.reconnect();
     ubidots.subscribeLastValue("cleanroom","lights");
+    ubidots.subscribeLastValue("cleanroom","extractor");
+    ubidots.subscribeLastValue("cleanroom","dehumidifer");
+    ubidots.subscribeLastValue("cleanroom","air_cooler");
   }
   ubidots.loop();
 }
