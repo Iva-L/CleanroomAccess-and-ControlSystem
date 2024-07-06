@@ -10,6 +10,7 @@
 #include <MFRC522.h>
 #include "WiFi.h"
 #include <HTTPClient.h>
+#include <UbidotsEsp32Mqtt.h>
 
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
 #define RST_PIN 22  // MFRC552 Reset PIN
@@ -22,8 +23,14 @@
 #define LIGHTS 14 // Lights activation PIN
 #define DEHUMIDIFERS 27 // Dehimidifers activation PIN
 
+/*--WiFi and ubidots--------------------------------------------------------------------------------------------------------------------------------------*/
+#define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"     //Ubidots TOKEN
+#define WIFISSID "upaep wifi"  // SSID
+#define WIFIPASS ""  //Wifi Pass
+
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
+Ubidots ubidots(TOKEN);
 
 /*--GoogleSheets Info----------------------------------------------------------------------------------------------------------------------------*/
 const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyuBK_qrVVEab8mUQ6hpRLeCTnvgWgF6DvgdTrf68nZ5bHkJ4nacMt8S3P1qgGQztHp/exec";
@@ -41,7 +48,26 @@ String registeredIDs[3] = {
   "3444657",
   "3521954"
 };
+/*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
+/**
+* Callback function for ubidots
+* @param none
+* @retval none
+*/
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+  Serial.print("Command: ");
+  bool command = *payload - 48;
+  Serial.println(command);
+  digitalWrite(LIGHTS, command);
+}
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
@@ -51,6 +77,10 @@ String registeredIDs[3] = {
 */
 void setup() {
   pinMode(LOCK, OUTPUT);
+  pinMode(EXTRACTOR, OUTPUT);
+  pinMode(AIR_COOLER, OUTPUT);
+  pinMode(LIGHTS, OUTPUT);
+  pinMode(DEHUMIDIFERS, OUTPUT);
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init(); 
@@ -66,6 +96,17 @@ void setup() {
   Serial.println();
   Serial.println("WiFi connected.");
   Serial.println("------------");
+
+  Serial.println(" Initializing Ubidots Connection...");
+  ubidots.connectToWifi(WIFISSID, WIFIPASS);
+  ubidots.setDebug(true);                        // Pass a true or false bool value to activate debug messages
+  ubidots.setCallback(callback);
+  ubidots.setup();
+  ubidots.reconnect();
+
+  Serial.println(" Initializing Ubidots Connection...");
+  ubidots.subscribeLastValue("cleanroom","lights");
+  Serial.println("DONE");
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -168,6 +209,21 @@ void ReadCard(){
     }
   }
 }
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/**
+* Function to subscribe to ubidots and act phisically
+* @param none
+* @retval none
+*/
+void ubiloop(){
+  if (!ubidots.connected()) {
+    ubidots.reconnect();
+    ubidots.subscribeLastValue("cleanroom","lights");
+  }
+  ubidots.loop();
+}
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
@@ -177,5 +233,6 @@ void ReadCard(){
 */
 void loop() {
   ReadCard();
+  ubiloop();
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/
