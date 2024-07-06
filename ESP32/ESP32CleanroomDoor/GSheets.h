@@ -12,7 +12,8 @@ const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiYW4zfcS4e
 const String SHEET_NAME = "KeyLog";
 
 /*--Constant Defines-----------------------------------------------------------------------------------------------------------------------------*/
-#define MAX_USR 50    //Max users register
+#define MAX_USR   50    //Max users register
+#define MAX_MSTR  3     //Max Master cards
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
 byte acceptedUIDs[MAX_USR][4];

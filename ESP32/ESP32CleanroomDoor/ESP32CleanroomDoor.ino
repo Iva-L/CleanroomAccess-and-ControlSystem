@@ -23,11 +23,14 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 /*--Acceptance IDs-------------------------------------------------------------------------------------------------------------------------------*/
 extern byte acceptedUIDs[MAX_USR][4];
-byte MasterKeys[2][4]{
+extern String registeredIDs[MAX_USR];
+
+/*--Master UIDs----------------------------------------------------------------------------------------------------------------------------------*/
+byte MasterKeys[MAX_MSTR][4]{
+{0xD7, 0x6F, 0x4E, 0x20},
 {0xD7, 0x6F, 0x4E, 0x20},
 {0xD7, 0x6F, 0x4E, 0x20}
 };
-extern String registeredIDs[MAX_USR];
 
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
 TaskHandle_t REG_TASK;
@@ -88,8 +91,10 @@ void ReadCard(void *parameter) {
         }
         Serial.println();
 
-        if(memcmp(mfrc522.uid.uidByte,MasterKeys[1],mfrc522.uid.size) == 0){
+        for(int i=0; i>MAX_MSTR; i++){
+          if(memcmp(mfrc522.uid.uidByte,MasterKeys[i],mfrc522.uid.size) == 0){
           MasterTrigger = true;
+          }
         }
 
         if (MasterTrigger = true){    //Mandar UID a GoogleSheets
