@@ -1,6 +1,6 @@
 /*
  *  @file   LockDoor.h
- *  @brief  Main file with Task to access and control the cleanroom in UPAEP using RFID and mobile app
+ *  @brief  Header file for opening the door using RFID
  *  @author Iván Ortiz De Lara
 */
 
@@ -44,12 +44,16 @@ int checkAcceptedUID(byte *uid, byte size) {
 * @brief Grants Access and opens the door
 * @retval none
 */
-void GrantAccess() {
-  Serial.println("Access granted");
-  digitalWrite(LOCK, HIGH);
-  tone(BUZZER, 131, 5000);
-  delay(5000);
-  noTone(BUZZER);
-  digitalWrite(LOCK, LOW);
+void GrantAccess(void *parameter) {
+  while (1){
+    xTaskNotifyWait(0, 0x00, NULL, portMAX_DELAY);
+
+    Serial.println("Access granted");
+    digitalWrite(LOCK, HIGH);
+    tone(BUZZER, 131, 5000);
+    delay(5000);
+    noTone(BUZZER);
+    digitalWrite(LOCK, LOW);
+  }
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/

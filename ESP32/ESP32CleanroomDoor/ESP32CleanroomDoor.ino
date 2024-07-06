@@ -29,6 +29,8 @@ extern String registeredIDs[MAX_USR];
 TaskHandle_t REG_TASK;
 TaskHandle_t BUTTON_TASK;
 TaskHandle_t CARD_TASK;
+TaskHandle_t OPENDOOR_TASK;
+
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
@@ -58,6 +60,7 @@ void setup() {
   xTaskCreate(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK);
   xTaskCreate(CheckButton,"BUTTON_TASK",10000,NULL,2,&BUTTON_TASK);
   xTaskCreate(ReadCard,"CARD_TASK",10000,NULL,2,&CARD_TASK);
+  xTaskCreate(GrantAccess,"OPENDOOR_TASK",3000,NULL,4,&OPENDOOR_TASK);
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -83,7 +86,8 @@ void ReadCard(void *parameter) {
         // Check if the UID is accepted
         int pos = checkAcceptedUID(mfrc522.uid.uidByte, mfrc522.uid.size);
         if (pos != -1) {
-          GrantAccess();
+          xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);                      //Grant Access
+          
           String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];     // Modify URL and send ID
           sendData(Send_URL);     // Sends ID to database
 
@@ -107,7 +111,7 @@ void CheckButton(void *parameter) {
     //Open door if button is pressed
     if (digitalRead(BUTTON) == HIGH) {
 
-      GrantAccess();      //Grant Access
+      xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);        //Grant Access
 
       String Exit_URL = WEB_APP_URL + "?uid=" + "-1";     //Register Exit time
       sendData(Exit_URL);

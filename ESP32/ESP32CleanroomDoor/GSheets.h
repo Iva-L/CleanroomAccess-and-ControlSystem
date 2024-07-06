@@ -1,6 +1,6 @@
 /*
  *  @file   GSheets.h
- *  @brief  Google Sheets Client conection for sending and reciving data
+ *  @brief  Header file for Google Sheets Client conection for sending and reciving data
  *  @author Alessia Sanchez Amezcua
 */
 
