@@ -8,7 +8,7 @@
 #include <HTTPClient.h>
 
 /*--GoogleSheets Info----------------------------------------------------------------------------------------------------------------------------*/
-const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiYW4zfcS4e_RgLtCBWFyxQM63XIDS3SUSOO3bRGPIITaGurdiBGJlOJOEfPbOzTnD/exec";
+const String WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXJXLIpmGE6_J7syJ4r4T30slNMiD0T0eGdg4ii5oxIaN__ezK_PUvZcNG98UC3sVt/exec";
 const String SHEET_NAME = "KeyLog";
 
 /*--Constant Defines-----------------------------------------------------------------------------------------------------------------------------*/
@@ -27,7 +27,7 @@ String registeredIDs[MAX_USR];
 bool readData(int n) {
   n += 1;
   HTTPClient http;
-  String Read_Data_URL = WEB_APP_URL + "?uid=" + n;
+  String Read_Data_URL = WEB_APP_URL + "?uid=" + n + "&add=0";
 
   // HTTP GET Request.
   http.begin(Read_Data_URL.c_str());

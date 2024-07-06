@@ -82,12 +82,14 @@ void ReadCard(void *parameter) {
     noTone(BUZZER);
 
     //Checks if there is a Card Present
+    String newUID;
     if (mfrc522.PICC_IsNewCardPresent()) {
       if (mfrc522.PICC_ReadCardSerial()) {
         Serial.print("Card UID:");
         for (byte i = 0; i < mfrc522.uid.size; i++) {
           Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
           Serial.print(mfrc522.uid.uidByte[i], HEX);
+          newUID += String((mfrc522.uid.uidByte[i], HEX));
         }
         Serial.println();
 
@@ -95,14 +97,11 @@ void ReadCard(void *parameter) {
 
         if (MasterTrigger == true){    //Mandar UID a GoogleSheets
           Serial.print("Modo pro");
-          for(int i=0; i<MAX_MSTR; i++){
-            if(memcmp(mfrc522.uid.uidByte,MasterKeys[i], 4) == 0){
-              MasterTrigger = true;
-            }
-            else{
-              MasterTrigger = false;
-            }
-          }
+          Serial.println("Envio de uid: " + newUID);
+          String Send_URL = WEB_APP_URL + "?uid=-2&add=0" + newUID;     // Modify URL and send ID
+          sendData(Send_URL);     // Sends ID to database
+          MasterTrigger = false;
+
         } else{                       //Checkar registro
           for(int i=0; i<MAX_MSTR; i++){
             if(memcmp(mfrc522.uid.uidByte,MasterKeys[i], 4) == 0){
@@ -117,7 +116,7 @@ void ReadCard(void *parameter) {
           if (pos != -1) {
             xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);                      //Grant Access
             
-            String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos];     // Modify URL and send ID
+            String Send_URL = WEB_APP_URL + "?uid=" + registeredIDs[pos] + "&add=0";     // Modify URL and send ID
             sendData(Send_URL);     // Sends ID to database
 
           } else {
@@ -127,7 +126,7 @@ void ReadCard(void *parameter) {
         }
       }
     }
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -143,7 +142,7 @@ void CheckButton(void *parameter) {
 
       xTaskNotify(OPENDOOR_TASK, NULL, eNoAction);        //Grant Access
 
-      String Exit_URL = WEB_APP_URL + "?uid=" + "-1";     //Register Exit time
+      String Exit_URL = WEB_APP_URL + "?uid=" + "-1&add=0";     //Register Exit time
       sendData(Exit_URL);
     }
   }
