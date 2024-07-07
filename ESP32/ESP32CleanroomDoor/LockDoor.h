@@ -11,9 +11,9 @@
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
 #define RST_PIN 22  // MFRC552 Reset PIN
 #define SS_PIN  21  // MFRC552 SS SDA PIN
-#define BUTTON  2  //Exit button PIN
-#define LOCK          13    // DoorLock PIN
-#define BUZZER        4     // Buzzer PIN
+#define BUTTON  2   //Exit button PINs
+#define LOCK    13  // DoorLock PIN
+#define BUZZER  4   // Buzzer PIN
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 MFRC522 mfrc522(SS_PIN, RST_PIN); 

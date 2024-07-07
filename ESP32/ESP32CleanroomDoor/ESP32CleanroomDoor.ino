@@ -10,6 +10,10 @@
 #include "LockDoor.h"       // Lockdoor mechanism custom header
 #include "Ubidots.h"        // Ubidots custom header
 
+/*--WiFi-----------------------------------------------------------------------------------------------------------------------------------------*/
+#define WIFISSID "INFINITUMB9A9"    // Wifi SSID  
+#define WIFIPASS "S2GQCG3fSb"       // Wifi Password
+
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
 TaskHandle_t BUTTON_TASK;
 TaskHandle_t UBILOOP_TASK;
@@ -51,13 +55,13 @@ void setup() {
   //Initialize Ubidots connection
   UbiConnect();
 
+  //Tasks Creation
   xTaskCreate(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK);
   xTaskCreate(CheckButton,"BUTTON_TASK",6000,NULL,1,&BUTTON_TASK);
   xTaskCreate(ReadCard,"CARD_TASK",10000,NULL,2,&CARD_TASK);
   xTaskCreate(GrantAccess,"OPENDOOR_TASK",3000,NULL,3,&OPENDOOR_TASK);
   xTaskCreate(ubiloop, "UBILOOP_TASK",30000,NULL,6,&UBILOOP_TASK);
 }
-
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
@@ -68,5 +72,4 @@ void loop(){
   while(1){
   }
 }
-
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/

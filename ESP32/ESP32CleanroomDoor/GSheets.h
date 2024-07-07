@@ -89,6 +89,7 @@ void sendData(String Send_Data_URL) {
   http.end();
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+
 /**
 * @brief  Updates the register of acceptable UIDs
 * @retval none

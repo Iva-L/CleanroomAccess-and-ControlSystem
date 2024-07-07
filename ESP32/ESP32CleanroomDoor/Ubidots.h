@@ -1,4 +1,3 @@
-#include "esp32-hal-gpio.h"
 /*
  *  @file   Ubidots.h
  *  @brief  Main file with Task to access and control the cleanroom in UPAEP using RFID and mobile app
@@ -16,16 +15,15 @@
 
 /*--WiFi and Ubidots-----------------------------------------------------------------------------------------------------------------------------*/
 #define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"   //Ubidots TOKEN
-#define WIFISSID "INFINITUMB9A9"                      // SSID  
-#define WIFIPASS "S2GQCG3fSb"                         //Wifi Pass
 
-/*--Device Labels--------------------------------------------------------------------------------------------------------------------------------------*/
-#define DEVICE_LABEL "cleanroom"
-
+/*--Variable Labels------------------------------------------------------------------------------------------------------------------------------*/
 char *var_labels[] = {"lights", "extractor", "dehumidifer", "air_cooler"};
 
-#define DIMENSION_OF(x) (sizeof(x)/sizeof(x[0]))
+/*--Device Labels--------------------------------------------------------------------------------------------------------------------------------*/
+#define DEVICE_LABEL "cleanroom"
 
+/*--Last Values----------------------------------------------------------------------------------------------------------------------------------*/
+#define DIMENSION_OF(x) (sizeof(x)/sizeof(x[0]))
 float var_last_values[DIMENSION_OF(var_labels)] = {};
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
@@ -34,8 +32,10 @@ Ubidots ubidots(TOKEN);
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* Callback function for ubidots
-* @param none
+* @brief Callback function for ubidots
+* @param topic topic of callback
+* @param payload message from ubidots
+* @param length lenth of message
 * @retval none
 */
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -75,16 +75,19 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
-
-/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
-
+/**
+* @brief Suscribes to Last value from a variable
+* @param labels all variable labels
+* @param n_labels number of variable labels
+* @retval none
+*/
 void subscribe_to_vars(char **labels, size_t n_labels) {
-  size_t i;
-  for (i = 0; i < n_labels; i++) {
+  for (size_t i = 0; i < n_labels; i++) {
     char *label = labels[i];
     ubidots.subscribeLastValue(DEVICE_LABEL, label);
   }
 }
+/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
 void UbiConnect(){
   ubidots.setCallback(callback);
@@ -93,12 +96,24 @@ void UbiConnect(){
 
   subscribe_to_vars(var_labels, DIMENSION_OF(var_labels));
 }
+/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
+/**
+* @brief Turns string into integer
+* @param str the string variable
+* @param h position 0 of string
+* @retval the string as an integer
+*/
 constexpr unsigned int str2int(const char* str, int h = 0)
 {
     return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
 }
+/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
+/**
+* @brief Updates values of appliance PINS
+* @retval none
+*/
 void updateVars(){
   for (int i = 0; i < DIMENSION_OF(var_labels); i++) {
     
@@ -118,9 +133,10 @@ void updateVars(){
     }
   }
 }
+/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /**
-* @brief Checks connection to ubidots and sucribes to values
+* @brief Checks connection to ubidots and suscribes to values
 * @retval none
 */
 void ubiloop(void *parameter){
