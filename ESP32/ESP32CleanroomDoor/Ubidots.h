@@ -1,3 +1,4 @@
+#include "esp32-hal-gpio.h"
 /*
  *  @file   Ubidots.h
  *  @brief  Main file with Task to access and control the cleanroom in UPAEP using RFID and mobile app
@@ -8,15 +9,24 @@
 #include <UbidotsEsp32Mqtt.h>
 
 /*--PIN Defines----------------------------------------------------------------------------------------------------------------------------------*/
-#define EXTRACTOR 26 // Extractor activation PIN 
-#define AIR_COOLER 12 // AC  activation PIN
-#define LIGHTS 14 // Lights activation PIN
-#define DEHUMIDIFERS 27 // Dehimidifers activation PIN
+#define EXTRACTOR       26   // Extractor activation PIN 
+#define AIR_COOLER      12   // AC  activation PIN
+#define LIGHTS          14   // Lights activation PIN
+#define DEHUMIDIFERS    27   // Dehimidifers activation PIN
 
-/*--WiFi-----------------------------------------------------------------------------------------------------------------------------------------*/
-#define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"     //Ubidots TOKEN
-#define WIFISSID "Totalplay-BCA8"  // SSID  
-#define WIFIPASS "BCA83BAETKTSDEb3"  //Wifi Pass
+/*--WiFi and Ubidots-----------------------------------------------------------------------------------------------------------------------------*/
+#define TOKEN "BBUS-wc3ibpEdsyoo7zP6C3Mncv0l81Qnb9"   //Ubidots TOKEN
+#define WIFISSID "INFINITUMB9A9"                      // SSID  
+#define WIFIPASS "S2GQCG3fSb"                         //Wifi Pass
+
+/*--Device Labels--------------------------------------------------------------------------------------------------------------------------------------*/
+#define DEVICE_LABEL "cleanroom"
+
+char *var_labels[] = {"lights", "extractor", "dehumidifer", "air_cooler"};
+
+#define DIMENSION_OF(x) (sizeof(x)/sizeof(x[0]))
+
+float var_last_values[DIMENSION_OF(var_labels)] = {};
 
 /*--Objects--------------------------------------------------------------------------------------------------------------------------------------*/
 Ubidots ubidots(TOKEN);
@@ -29,74 +39,98 @@ Ubidots ubidots(TOKEN);
 * @retval none
 */
 void callback(char* topic, byte* payload, unsigned int length) {
-    // Serial.print("Message arrived [");
-    // Serial.print(topic);
-    // Serial.print("] ");
-  if( String(topic) == "/v2.0/devices/cleanroom/lights/lv"){ 
-    // Serial.println();
-    // Serial.print("Command lights: ");
-    bool command1 = *payload - 48;
-    // Serial.println(command1);
-    digitalWrite(LIGHTS, command1);
+  char *topic_cpy = strdup(topic);
+  char *payload_str = (char *) malloc(length + sizeof(""));
+  char *topic_item = strtok(topic_cpy, "/");
+  char *label = NULL;
+  float value = NAN;
+  size_t index = DIMENSION_OF(var_labels);
+  size_t i;
+
+  memcpy(payload_str, payload, length);
+  payload_str[length] = '\0';
+
+  while ((NULL != topic_item) && (NULL == label)) {
+    for (i = 0; i < DIMENSION_OF(var_labels); i++) {
+      if (0 == strcmp(var_labels[i], topic_item)) {
+        label = topic_item;
+        value = atof(payload_str);
+        index = i;
+        break;
+      }
+    }
+    topic_item = strtok(NULL, "/");
   }
-  if( String(topic) == "/v2.0/devices/cleanroom/extractor/lv"){ 
-    // Serial.println();
-    // Serial.print("Command extractor: ");
-    bool command2 = *payload - 48;
-    // Serial.println(command2);
-    digitalWrite(EXTRACTOR, command2);
+
+  if (index < DIMENSION_OF(var_labels)) {
+    var_last_values[index] = value;
+    
+    Serial.print(label);
+    Serial.print(": ");
+    Serial.println(var_last_values[index]);
   }
-  if( String(topic) == "/v2.0/devices/cleanroom/dehumidifer/lv"){ 
-    // Serial.println();
-    // Serial.print("Command dehimidifer: ");
-    bool command3 = *payload - 48;
-    // Serial.println(command3);
-    digitalWrite(DEHUMIDIFERS, command3);
-  }
-  if( String(topic) == "/v2.0/devices/cleanroom/air_cooler/lv"){ 
-    // Serial.println();
-    // Serial.print("Command air cooler: ");
-    bool command4 = *payload - 48;
-    // Serial.println(command4);
-    digitalWrite(AIR_COOLER, command4);
-  }
-  
+
+  free(topic_cpy);
+  free(payload_str);
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
+
+/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+
+void subscribe_to_vars(char **labels, size_t n_labels) {
+  size_t i;
+  for (i = 0; i < n_labels; i++) {
+    char *label = labels[i];
+    ubidots.subscribeLastValue(DEVICE_LABEL, label);
+  }
+}
+
 void UbiConnect(){
-  Serial.println(" Initializing Ubidots Connection...");
-  ubidots.connectToWifi(WIFISSID, WIFIPASS);
-  ubidots.setDebug(false);                        // Pass a true or false bool value to activate debug messages
   ubidots.setCallback(callback);
   ubidots.setup();
   ubidots.reconnect();
 
-  Serial.println(" Initializing Ubidots Connection...");
-  ubidots.subscribeLastValue("cleanroom","lights");
-  ubidots.subscribeLastValue("cleanroom","extractor");
-  ubidots.subscribeLastValue("cleanroom","dehumidifer");
-  ubidots.subscribeLastValue("cleanroom","air_cooler");
-  Serial.println("DONE");
+  subscribe_to_vars(var_labels, DIMENSION_OF(var_labels));
 }
-/*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+
+constexpr unsigned int str2int(const char* str, int h = 0)
+{
+    return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
+}
+
+void updateVars(){
+  for (int i = 0; i < DIMENSION_OF(var_labels); i++) {
+    
+    switch (str2int(var_labels[i])) {
+      case str2int("lights"):
+        digitalWrite(LIGHTS, var_last_values[i]);
+        break;
+      case str2int("extractor"):
+        digitalWrite(EXTRACTOR, var_last_values[i]);
+        break;
+      case str2int("dehumidifer"):
+        digitalWrite(DEHUMIDIFERS, var_last_values[i]);
+        break;
+      case str2int("air_cooler"):
+        digitalWrite(AIR_COOLER, var_last_values[i]);
+        break;
+    }
+  }
+}
 
 /**
-* Function to subscribe to ubidots and act phisically
-* @param none
+* @brief Checks connection to ubidots and sucribes to values
 * @retval none
 */
 void ubiloop(void *parameter){
   while (1){
     if (!ubidots.connected()) {
       ubidots.reconnect();
-      ubidots.subscribeLastValue("cleanroom","lights");
-      ubidots.subscribeLastValue("cleanroom","extractor");
-      ubidots.subscribeLastValue("cleanroom","dehumidifer");
-      ubidots.subscribeLastValue("cleanroom","air_cooler");
+      subscribe_to_vars(var_labels, DIMENSION_OF(var_labels));
     }
+    updateVars();
     ubidots.loop();
-    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/

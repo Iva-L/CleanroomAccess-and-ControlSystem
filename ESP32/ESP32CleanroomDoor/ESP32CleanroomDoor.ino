@@ -21,29 +21,34 @@ TaskHandle_t UBILOOP_TASK;
 * @retval none
 */
 void setup() {
+  // Door PINS
   pinMode(LOCK, OUTPUT);
   pinMode(BUTTON, INPUT);
 
+  //Appliance PINS
   pinMode(EXTRACTOR, OUTPUT);
   pinMode(AIR_COOLER, OUTPUT);
   pinMode(LIGHTS, OUTPUT);
   pinMode(DEHUMIDIFERS, OUTPUT);
+
+  //Initialize serial communication
   Serial.begin(9600);
 
+  //Initialize SPI communication
   SPI.begin();
+
+  //Initialize MFRC522 module
   mfrc522.PCD_Init();
 
-  WiFi.mode(WIFI_STA);
-  Serial.print("Connecting to WiFi");
-  WiFi.begin(WIFISSID,WIFIPASS);
-  while (WiFi.status() != WL_CONNECTED) {
+  //Initialize WiFi Connection
+  WiFi.mode(WIFI_STA);                      //WiFI STA mode
+  WiFi.begin(WIFISSID,WIFIPASS);            //Begin WiFi connection
+  while (WiFi.status() != WL_CONNECTED) {   //Check if WiFi is connected
     delay(250);
     Serial.print(".");
   }
-  Serial.println();
-  Serial.println("WiFi connected.");
-  Serial.println("------------");
 
+  //Initialize Ubidots connection
   UbiConnect();
 
   xTaskCreate(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK);
