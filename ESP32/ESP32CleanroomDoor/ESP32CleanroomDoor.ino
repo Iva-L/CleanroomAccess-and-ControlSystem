@@ -11,8 +11,8 @@
 #include "Ubidots.h"        // Ubidots custom header
 
 /*--WiFi-----------------------------------------------------------------------------------------------------------------------------------------*/
-#define WIFISSID "INFINITUMB9A9"    // Wifi SSID  
-#define WIFIPASS "S2GQCG3fSb"       // Wifi Password
+#define WIFISSID "upaep wifi"    // Wifi SSID  
+#define WIFIPASS ""       // Wifi Password
 
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
 TaskHandle_t BUTTON_TASK;
@@ -56,11 +56,11 @@ void setup() {
   UbiConnect();
 
   //Tasks Creation
-  xTaskCreate(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK);
-  xTaskCreate(CheckButton,"BUTTON_TASK",6000,NULL,1,&BUTTON_TASK);
-  xTaskCreate(ReadCard,"CARD_TASK",10000,NULL,2,&CARD_TASK);
-  xTaskCreate(GrantAccess,"OPENDOOR_TASK",3000,NULL,3,&OPENDOOR_TASK);
-  xTaskCreate(ubiloop, "UBILOOP_TASK",30000,NULL,6,&UBILOOP_TASK);
+  xTaskCreatePinnedToCore(UpdateReg,"REG_TASK",10000,NULL,8,&REG_TASK,0);
+  xTaskCreatePinnedToCore(CheckButton,"BUTTON_TASK",6000,NULL,1,&BUTTON_TASK,1);
+  xTaskCreatePinnedToCore(ReadCard,"CARD_TASK",10000,NULL,2,&CARD_TASK,1);
+  xTaskCreatePinnedToCore(GrantAccess,"OPENDOOR_TASK",3000,NULL,3,&OPENDOOR_TASK,1);
+  xTaskCreatePinnedToCore(ubiloop, "UBILOOP_TASK",30000,NULL,6,&UBILOOP_TASK,0);
 }
 /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -70,6 +70,7 @@ void setup() {
 */
 void loop(){
   while(1){
+    delay(1000000);
   }
 }
 /*------------------------------------------------------------------------------------------------------------------------------------------------*/

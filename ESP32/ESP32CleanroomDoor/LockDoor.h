@@ -24,9 +24,9 @@ extern String registeredIDs[MAX_USR];
 
 /*--Master UIDs----------------------------------------------------------------------------------------------------------------------------------*/
 byte MasterKeys[MAX_MSTR][4]{
-{0x89, 0xEA, 0x95, 0x15},
-{0x89, 0xEA, 0x95, 0x15},
-{0x89, 0xEA, 0x95, 0x15}
+{0xC8, 0x7B, 0x83, 0x9E},
+{0xC8, 0x7B, 0x83, 0x9E},
+{0xC8, 0x7B, 0x83, 0x9E}
 };
 
 /*--Task Handlers--------------------------------------------------------------------------------------------------------------------------------*/
@@ -126,6 +126,10 @@ void ReadCard(void *parameter) {
 
           } else {
             Serial.println("Access denied");  //Deny access
+            tone(BUZZER, 261, 500);
+            tone(BUZZER, 131, 500);
+            noTone(BUZZER);
+
           }
           mfrc522.PICC_HaltA(); // Ends reading
           vTaskDelay(pdMS_TO_TICKS(1000));
