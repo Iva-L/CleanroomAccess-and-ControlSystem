@@ -102,6 +102,6 @@ void UpdateReg(void *parameter){
         break;
       }
     }
-    vTaskDelay(pdMS_TO_TICKS(300000));
+    vTaskDelay(pdMS_TO_TICKS(60000));
   }
 }

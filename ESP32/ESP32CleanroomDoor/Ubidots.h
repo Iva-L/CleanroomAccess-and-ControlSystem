@@ -146,6 +146,7 @@ void ubiloop(void *parameter){
       subscribe_to_vars(var_labels, DIMENSION_OF(var_labels));
     }
     updateVars();
+    vTaskDelay(pdMS_TO_TICKS(100));
     ubidots.loop();
   }
 }
